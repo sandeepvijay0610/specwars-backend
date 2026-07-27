@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+sqlalchemy
+asyncpg
+psycopg2-binary
+pgvector
+pydantic
+pydantic-settings
+alembic
+greenlet
+openai
+langchain
+langchain-openai
+langgraph
+python-dotenv
+duckduckgo-search
+langchain-community

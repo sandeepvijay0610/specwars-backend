@@ -1,0 +1,32 @@
+[
+  {
+    "model_name": "iPhone 17 Pro",
+    "chunk_text": "The new A19 Pro chip handles thermal throttling surprisingly well. Even after an hour of intensive gaming, the back of the device only felt slightly warm. The battery life is impressive, lasting a full day of heavy use.",
+    "source_url": "https://reddit.com/r/apple/comments/iphone17pro_thermals"
+  },
+  {
+    "model_name": "iPhone 17 Pro",
+    "chunk_text": "Low light photography on the iPhone 17 Pro is exceptional. The new sensor captures significantly more light, resulting in brighter, clearer photos with less noise in extremely dark environments compared to the previous generation.",
+    "source_url": "https://gsmarena.com/iphone_17_pro_camera_review"
+  },
+  {
+    "model_name": "Nord CE 5",
+    "chunk_text": "For a mid-range phone, the OnePlus Nord CE 5's battery life is phenomenal. It easily pushes through a day and a half. However, it does tend to get a bit warm during fast charging.",
+    "source_url": "https://reddit.com/r/oneplus/nord_ce_5_battery_life"
+  },
+  {
+    "model_name": "Nord CE 5",
+    "chunk_text": "The Snapdragon 7 Gen 3 is snappy, but thermal management isn't its strongest suit. Prolonged use at high brightness can cause the device to throttle noticeably to keep temperatures in check.",
+    "source_url": "https://youtube.com/watch?v=nord_ce_5_review"
+  },
+  {
+    "model_name": "Galaxy S26 Ultra",
+    "chunk_text": "Samsung's vapor chamber cooling in the Galaxy S26 Ultra is top-tier. Playing Genshin Impact at max settings for 2 hours didn't cause any severe throttling. The battery life is solidly reliable, easily hitting 8+ hours of screen-on time.",
+    "source_url": "https://reddit.com/r/Android/galaxy_s26_ultra_gaming"
+  },
+  {
+    "model_name": "Galaxy S26 Ultra",
+    "chunk_text": "The camera on the Galaxy S26 Ultra excels in bright daylight, but struggles slightly with fast-moving subjects in low light. The battery, leveraging a new solid-state chemistry, stays cool even during intensive tasks.",
+    "source_url": "https://theverge.com/reviews/samsung-galaxy-s26-ultra"
+  }
+]

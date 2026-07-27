@@ -1,0 +1,58 @@
+Phase 1: Architecture & Data Schema Design
+Goal: Lock down the data structures, system boundaries, and API contracts before writing business logic.
+
+[ ] Relational Database Design: Define PostgreSQL tables for core smartphone specs (e.g., devices, chipsets, cameras, battery_specs).
+
+[ ] Vector Database Design: Define pgvector tables and indexes (HNSW/IVFFlat) for unstructured text chunks (e.g., device_reviews, user_sentiments).
+
+[ ] API Contract Specification: Map out REST and Server-Sent Events (SSE) streaming endpoints between Next.js and FastAPI.
+
+[ ] Repository Setup: Create a clean monorepo or dual-repo structure (specwars-web and specwars-engine) with strict linting and environment variable management.
+
+Phase 2: Core Data Engine & Embedding Pipeline
+Goal: Populate your hybrid database with both hard numbers and vector embeddings.
+
+[ ] PostgreSQL Provisioning: Set up local PostgreSQL with the pgvector extension enabled.
+
+[ ] Structured Ingestion Script: Build a script to seed initial structured smartphone spec data into PostgreSQL.
+
+[ ] Unstructured Pipeline: Implement text chunking, embedding generation (e.g., via OpenAI or HuggingFace embeddings), and storage into pgvector.
+
+[ ] Hybrid Search Verification: Verify that structured SQL queries and vector similarity queries run cleanly side-by-side.
+
+Phase 3: Agentic Orchestration & Observability (The AI Core)
+Goal: Build the stateful routing logic, RAG pipelines, and token-tracking instrumentation.
+
+[ ] Langfuse Setup: Initialize Langfuse instrumentation inside the Python environment to track tokens, latency, and trace trees from day one.
+
+[ ] LangGraph Intent Router Node: Build the classifier node that determines whether a query needs SQL, Vector RAG, or External Web Search.
+
+[ ] RAG & SQL Tools Nodes: Write execution nodes for relational querying and vector similarity retrieval.
+
+[ ] Fallback Search Agent Node: Integrate a Web Search API (e.g., Tavily/Serper) to fetch external data on cache misses.
+
+[ ] Checkpointer Setup: Configure PostgreSQL as the persistent state memory for multi-turn conversations.
+
+Phase 4: Async Backend & Streaming Frontend
+Goal: Connect the AI pipeline to a sleek, real-time UI with near-zero perceived latency.
+
+[ ] FastAPI Engine: Build async endpoints with EventSourceResponse to stream LLM tokens directly to the client.
+
+[ ] Next.js App Router Setup: Initialize the frontend using TypeScript, Tailwind CSS, and global state management.
+
+[ ] Streaming Hook Implementation: Build client-side custom hooks to consume SSE streams and render real-time response chunks.
+
+[ ] UI Component Library: Build spec comparison tables, interactive chat windows, and token usage badge indicators.
+
+Phase 5: Containerization, Cloud Infrastructure & CI/CD
+Goal: Deploy the entire system to AWS with automated deployment and zero domain cost.
+
+[ ] Dockerization: Write production-optimized Dockerfiles for both the FastAPI engine and Next.js frontend.
+
+[ ] AWS RDS Provisioning: Spin up an RDS PostgreSQL instance with pgvector enabled in a secure VPC.
+
+[ ] AWS ECS Fargate Deployment: Deploy the FastAPI Docker container behind an Application Load Balancer (ALB).
+
+[ ] AWS Amplify Deployment: Connect the Next.js GitHub repository to AWS Amplify for continuous integration and static edge deployment.
+
+[ ] Domain & SSL Configuration: Claim a free domain from the GitHub Student Developer Pack, hook it up to Route 53/Amplify, and attach SSL certificates.

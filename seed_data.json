@@ -1,0 +1,38 @@
+[
+  {
+    "brand": "Apple",
+    "model_name": "iPhone 17 Pro",
+    "release_year": 2025,
+    "base_price_usd": 1099,
+    "specs": {
+      "display": "6.1-inch Super Retina XDR OLED, 120Hz",
+      "processor": "A19 Pro",
+      "ram": "8GB",
+      "storage": "256GB"
+    }
+  },
+  {
+    "brand": "OnePlus",
+    "model_name": "Nord CE 5",
+    "release_year": 2026,
+    "base_price_usd": 399,
+    "specs": {
+      "display": "6.7-inch Fluid AMOLED, 120Hz",
+      "processor": "Snapdragon 7 Gen 3",
+      "ram": "8GB",
+      "storage": "128GB"
+    }
+  },
+  {
+    "brand": "Samsung",
+    "model_name": "Galaxy S26 Ultra",
+    "release_year": 2026,
+    "base_price_usd": 1299,
+    "specs": {
+      "display": "6.8-inch Dynamic AMOLED 2X, 144Hz",
+      "processor": "Snapdragon 8 Gen 5",
+      "ram": "16GB",
+      "storage": "512GB"
+    }
+  }
+]
