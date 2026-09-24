@@ -70,3 +70,36 @@ async def test_api_chat():
         data = resp.json()
         assert "answer" in data
         assert len(data["answer"]) > 10
+        assert "citations" in data
+        assert len(data["citations"]) > 0, "Chat citations are missing"
+
+@pytest.mark.asyncio
+async def test_vector_retrieval_function():
+    from app.core.retrieval import retrieve_relevant_chunks
+    
+    canonical_phones = ["Apple iPhone 15 Pro", "Samsung Galaxy S24 Ultra"]
+    chunks = await retrieve_relevant_chunks(
+        canonical_phones,
+        query="Which one has better battery life and charging speed?",
+        top_k_per_phone=3
+    )
+    
+    assert chunks is not None
+    assert len(chunks) > 0, "No chunks retrieved"
+    
+    # Assert both selected phones are represented
+    retrieved_phones = set(c["phone_name"] for c in chunks)
+    for phone in canonical_phones:
+        assert phone in retrieved_phones, f"{phone} was not retrieved"
+        
+    # No unrelated phone appears
+    for phone in retrieved_phones:
+        assert phone in canonical_phones, f"Unrelated phone {phone} appeared"
+        
+    # Assert every result has a distance and it's sensible
+    for chunk in chunks:
+        assert "distance" in chunk
+        assert chunk["distance"] is not None
+        assert 0.0 <= chunk["distance"] <= 2.0  # Cosine distance bounds
+        assert chunk["content"] is not None
+        assert chunk["category"] is not None

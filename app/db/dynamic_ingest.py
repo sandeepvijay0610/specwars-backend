@@ -206,11 +206,13 @@ async def ingest_new_phone(phone_model: str) -> str:
                 print(f"[Ingest] Successfully embedded and stored {len(chunk_dicts)} chunks for '{canonical}'.")
 
     except Exception as e:
-        print(f"[Ingest] Warning: Failed to embed chunks for '{canonical}'. Deleting device to retry later. Error: {e}")
+        print(f"[Ingest] Failed to embed chunks for '{canonical}'. Deleting incomplete device. Error: {e}")
         async with async_session() as session:
             from sqlalchemy import delete
             await session.execute(delete(Device).where(Device.id == actual_device_id))
             await session.commit()
+            
+        raise RuntimeError(f"Embedding pipeline failed for '{canonical}'. Please retry.") from e
 
     return canonical
 
