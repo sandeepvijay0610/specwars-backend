@@ -2,6 +2,11 @@ import asyncio
 import httpx
 import pytest
 import time
+from sqlalchemy.future import select
+from sqlalchemy import func
+from app.core.database import async_session
+from app.models.device import Device
+from app.models.chunk import DeviceChunk
 
 @pytest.mark.asyncio
 async def test_e2e_comparison_flow():
@@ -20,8 +25,24 @@ async def test_e2e_comparison_flow():
         assert "overall_winner" in data
         assert "category_winners" in data
         assert "battery" in data["category_winners"]
+        
+        # 1.5. Prove vectors were used by checking database directly
+        async with async_session() as session:
+            # Check if devices were created
+            devices_stmt = select(Device).where(Device.model_name.in_(["Apple iPhone 15 Pro", "Samsung Galaxy S24 Ultra"]))
+            devices_result = await session.execute(devices_stmt)
+            db_devices = devices_result.scalars().all()
+            assert len(db_devices) == 2, "Expected 2 devices in the database"
+            device_ids = [d.id for d in db_devices]
+            
+            # Check if vectors were inserted
+            chunks_stmt = select(func.count(DeviceChunk.id)).where(DeviceChunk.device_id.in_(device_ids))
+            chunks_result = await session.execute(chunks_stmt)
+            chunk_count = chunks_result.scalar()
+            assert chunk_count > 0, "No vector chunks found! Embeddings failed or were bypassed."
+            
         assert "citations" in data
-        assert len(data["citations"]) > 0, "Expected at least one citation to be retrieved from vectors"
+        assert len(data["citations"]) > 0, "Expected citations from retrieved chunks"
         
         # 2. Test Cache Hit
         print("Sending second request (Expect instant cache hit)...")

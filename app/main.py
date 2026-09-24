@@ -207,9 +207,11 @@ async def compare_phones(request: CompareRequest):
 @app.post("/api/chat")
 async def mini_chat(request: ChatRequest):
     from app.core.retrieval import retrieve_relevant_chunks
+    from app.db.dynamic_ingest import ensure_phone_cached
+    
     canonical_names = []
     for phone in request.phones:
-        canonical = await resolve_canonical_name(phone)
+        canonical = await ensure_phone_cached(phone)
         if canonical:
             canonical_names.append(canonical)
 
@@ -219,6 +221,8 @@ async def mini_chat(request: ChatRequest):
     context_text = "\n\n".join(
         [f"[Phone: {c['phone_name']} | Category: {c['category']}]\n{c['content']}" for c in chunks]
     ) or "No relevant information found for these devices."
+
+    citations = list({c['source_url'] for c in chunks if c.get('source_url')})
 
     llm = AzureChatOpenAI(
         azure_deployment=os.getenv("AZURE_LLM_DEPLOYMENT"),
@@ -237,7 +241,7 @@ Semantic Context:
     ]
 
     response = await llm.ainvoke(messages)
-    return {"answer": response.content}
+    return {"answer": response.content, "citations": citations}
 
 
 # ---------------------------------------------------------------------------

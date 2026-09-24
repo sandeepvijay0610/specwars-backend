@@ -111,7 +111,7 @@ Raw Web Data:
 # ---------------------------------------------------------------------------
 # 4. Ingestion
 # ---------------------------------------------------------------------------
-async def ingest_new_phone(phone_model: str) -> str:
+async def ensure_phone_cached(phone_model: str) -> str:
     """Ensures `phone_model` exists as a canonical Device row.
 
     Returns the canonical (empirical) model name — whether it was already
@@ -206,7 +206,11 @@ async def ingest_new_phone(phone_model: str) -> str:
                 print(f"[Ingest] Successfully embedded and stored {len(chunk_dicts)} chunks for '{canonical}'.")
 
     except Exception as e:
-        print(f"[Ingest] Warning: Failed to embed/store chunks for '{canonical}'. Data preserved. Error: {e}")
+        print(f"[Ingest] Warning: Failed to embed chunks for '{canonical}'. Deleting device to retry later. Error: {e}")
+        async with async_session() as session:
+            from sqlalchemy import delete
+            await session.execute(delete(Device).where(Device.id == actual_device_id))
+            await session.commit()
 
     return canonical
 
@@ -215,4 +219,4 @@ async def ingest_new_phone(phone_model: str) -> str:
 # 5. Manual Test Execution
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    asyncio.run(ingest_new_phone("Google Pixel 9 Pro"))
+    asyncio.run(ensure_phone_cached("Google Pixel 9 Pro"))
