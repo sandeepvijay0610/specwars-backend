@@ -111,7 +111,7 @@ Raw Web Data:
 # ---------------------------------------------------------------------------
 # 4. Ingestion
 # ---------------------------------------------------------------------------
-async def ensure_phone_cached(phone_model: str) -> str:
+async def ingest_new_phone(phone_model: str) -> str:
     """Ensures `phone_model` exists as a canonical Device row.
 
     Returns the canonical (empirical) model name — whether it was already
@@ -219,4 +219,4 @@ async def ensure_phone_cached(phone_model: str) -> str:
 # 5. Manual Test Execution
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    asyncio.run(ensure_phone_cached("Google Pixel 9 Pro"))
+    asyncio.run(ingest_new_phone("Google Pixel 9 Pro"))

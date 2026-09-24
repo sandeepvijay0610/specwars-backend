@@ -207,7 +207,6 @@ async def compare_phones(request: CompareRequest):
 @app.post("/api/chat")
 async def mini_chat(request: ChatRequest):
     from app.core.retrieval import retrieve_relevant_chunks
-    from app.db.dynamic_ingest import ensure_phone_cached
     
     canonical_names = []
     for phone in request.phones:
