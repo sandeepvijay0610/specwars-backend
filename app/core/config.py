@@ -8,5 +8,6 @@ class Settings(BaseSettings):
     AZURE_OPENAI_API_KEY: str = os.getenv("AZURE_OPENAI_API_KEY")
     AZURE_OPENAI_API_VERSION: str = os.getenv("AZURE_OPENAI_API_VERSION")
     AZURE_EMBEDDING_DEPLOYMENT: str = os.getenv("AZURE_EMBEDDING_DEPLOYMENT")
+    EMBEDDING_DIMENSIONS: int = int(os.getenv("EMBEDDING_DIMENSIONS", 1536))
 
 settings = Settings()

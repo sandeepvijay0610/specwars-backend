@@ -4,6 +4,7 @@ import asyncpg
 from app.core.config import settings
 from app.core.database import engine, Base
 import app.models.device  # to ensure models are imported
+import app.models.chunk
 import app.models.comparison_cache
 import app.models.phone_directory
 from app.db.seed_directory import seed_directory
@@ -13,6 +14,7 @@ async def create_extensions():
     conn = await asyncpg.connect(conn_str)
     try:
         await conn.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        await conn.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;")
         await conn.execute("CREATE EXTENSION IF NOT EXISTS btree_gin;")
         print("Extensions created.")
     finally:

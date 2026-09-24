@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import Column, String, Integer, Numeric, DateTime, Index
 from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 
@@ -37,5 +38,6 @@ class Device(Base):
     image_url = Column(String)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
+    chunks = relationship("DeviceChunk", back_populates="device", cascade="all, delete-orphan")
 
 Index("ix_devices_specs_json_gin", Device.specs_json, postgresql_using="gin")

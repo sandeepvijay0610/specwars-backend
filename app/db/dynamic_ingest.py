@@ -1,7 +1,7 @@
 import os
 import asyncio
 import uuid
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 from dotenv import load_dotenv
 
 from pydantic import BaseModel, Field
@@ -15,6 +15,10 @@ from app.core.database import async_session
 from app.core.normalize import normalize_name
 from app.models.device import Device
 from app.models.phone_directory import PhoneDirectory
+from app.models.chunk import DeviceChunk
+from app.core.chunking import generate_chunks_from_specs, generate_chunks_from_tavily_results
+from app.core.embeddings import get_embedding
+import traceback
 
 load_dotenv()
 
@@ -35,7 +39,7 @@ scrubber_llm = AzureChatOpenAI(
 # ---------------------------------------------------------------------------
 # 2. Web Search (Tavily)
 # ---------------------------------------------------------------------------
-def search_web_for_phone(phone_model: str) -> Tuple[str, Optional[str], List[str]]:
+def search_web_for_phone(phone_model: str) -> Tuple[str, Optional[str], List[str], List[Dict[str, str]]]:
     tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
     print(f"[Tavily] Searching for '{phone_model}'...")
@@ -49,14 +53,16 @@ def search_web_for_phone(phone_model: str) -> Tuple[str, Optional[str], List[str
 
     combined_content = []
     source_urls = []
+    raw_results = []
     for result in response.get("results", []):
         combined_content.append(result.get("content", ""))
         source_urls.append(result.get("url", ""))
+        raw_results.append({"url": result.get("url", ""), "content": result.get("content", "")})
 
     images = response.get("images", [])
     first_image_url = images[0] if images else None
 
-    return "\n\n".join(combined_content), first_image_url, source_urls
+    return "\n\n".join(combined_content), first_image_url, source_urls, raw_results
 
 
 # ---------------------------------------------------------------------------
@@ -122,7 +128,7 @@ async def ingest_new_phone(phone_model: str) -> str:
             return existing
 
     print(f"[Ingest] Cache miss for '{phone_model}'. Starting structured ETL...")
-    raw_text, image_url, source_urls = await asyncio.to_thread(search_web_for_phone, phone_model)
+    raw_text, image_url, source_urls, raw_results = await asyncio.to_thread(search_web_for_phone, phone_model)
     extracted = await extract_phone_data(raw_text)
 
     canonical_normalized = normalize_name(extracted.canonical_name)
@@ -164,8 +170,44 @@ async def ingest_new_phone(phone_model: str) -> str:
         canonical = await session.scalar(
             select(Device.model_name).where(Device.normalized_name == canonical_normalized)
         )
+        actual_device_id = await session.scalar(
+            select(Device.id).where(Device.normalized_name == canonical_normalized)
+        )
 
-    print(f"[Ingest] '{phone_model}' resolved to '{canonical}'.")
+    print(f"[Ingest] '{phone_model}' resolved to '{canonical}'. Generating embeddings...")
+    
+    spec_chunks = generate_chunks_from_specs(extracted.canonical_name, specs_json)
+    source_chunks = generate_chunks_from_tavily_results(extracted.canonical_name, raw_results)
+    all_chunks = spec_chunks + source_chunks
+
+    try:
+        async def embed_and_prepare(chunk):
+            emb = await get_embedding(chunk.content)
+            return {
+                "id": uuid.uuid4(),
+                "device_id": actual_device_id,
+                "category": chunk.category,
+                "content": chunk.content,
+                "source_url": chunk.source_url,
+                "metadata_json": {},
+                "content_hash": chunk.content_hash,
+                "embedding": emb,
+            }
+
+        chunk_dicts = await asyncio.gather(*[embed_and_prepare(c) for c in all_chunks])
+        
+        if chunk_dicts:
+            async with async_session() as session:
+                chunk_insert_stmt = pg_insert(DeviceChunk).values(chunk_dicts).on_conflict_do_nothing(
+                    index_elements=["device_id", "content_hash"]
+                )
+                await session.execute(chunk_insert_stmt)
+                await session.commit()
+                print(f"[Ingest] Successfully embedded and stored {len(chunk_dicts)} chunks for '{canonical}'.")
+
+    except Exception as e:
+        print(f"[Ingest] Warning: Failed to embed/store chunks for '{canonical}'. Data preserved. Error: {e}")
+
     return canonical
 
 

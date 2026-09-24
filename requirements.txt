@@ -15,3 +15,4 @@ langgraph
 python-dotenv
 duckduckgo-search
 langchain-community
+tavily-python

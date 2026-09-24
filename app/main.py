@@ -91,7 +91,13 @@ async def autocomplete(q: str = Query(..., min_length=1)):
     cached_normalized = set()
 
     async with async_session() as session:
-        stmt = select(Device).where(Device.model_name.ilike(f"%{q}%")).limit(10)
+        # Use pg_trgm similarity to rank matches
+        stmt = (
+            select(Device)
+            .where(func.similarity(Device.model_name, q) > 0.1)
+            .order_by(func.similarity(Device.model_name, q).desc())
+            .limit(10)
+        )
         result = await session.execute(stmt)
         devices = result.scalars().all()
 
@@ -108,7 +114,8 @@ async def autocomplete(q: str = Query(..., min_length=1)):
         if remaining > 0:
             dir_stmt = (
                 select(PhoneDirectory)
-                .where(PhoneDirectory.model_name.ilike(f"%{q}%"))
+                .where(func.similarity(PhoneDirectory.model_name, q) > 0.1)
+                .order_by(func.similarity(PhoneDirectory.model_name, q).desc())
                 .limit(remaining * 3)
             )
             dir_result = await session.execute(dir_stmt)

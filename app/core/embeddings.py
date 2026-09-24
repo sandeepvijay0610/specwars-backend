@@ -12,4 +12,10 @@ async def get_embedding(text: str) -> list[float]:
         input=text,
         model=settings.AZURE_EMBEDDING_DEPLOYMENT
     )
-    return response.data[0].embedding
+    embedding = response.data[0].embedding
+    if len(embedding) != settings.EMBEDDING_DIMENSIONS:
+        raise ValueError(
+            f"Embedding dimension mismatch: expected {settings.EMBEDDING_DIMENSIONS}, "
+            f"got {len(embedding)}"
+        )
+    return embedding
