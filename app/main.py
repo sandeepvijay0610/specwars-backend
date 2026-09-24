@@ -173,7 +173,7 @@ async def compare_phones(request: CompareRequest):
         canonical_names[phone] = canonical
         canonical_list.append(canonical)
 
-    pair_key = "_".join(sorted(normalize_name(n) for n in canonical_list))
+    pair_key = "_".join(sorted(normalize_name(n) for n in canonical_list)) + "_v2"
 
     # Cache check
     async with async_session() as session:
@@ -202,26 +202,23 @@ async def compare_phones(request: CompareRequest):
 
 
 # ---------------------------------------------------------------------------
-# POST /api/chat — grounded strictly in structured specs_json, no vector search
+# POST /api/chat — vector RAG grounded
 # ---------------------------------------------------------------------------
 @app.post("/api/chat")
 async def mini_chat(request: ChatRequest):
+    from app.core.retrieval import retrieve_relevant_chunks
     canonical_names = []
     for phone in request.phones:
         canonical = await resolve_canonical_name(phone)
         if canonical:
             canonical_names.append(canonical)
 
-    async with async_session() as session:
-        stmt = select(Device.model_name, Device.specs_json).where(
-            Device.model_name.in_(canonical_names)
-        )
-        result = await session.execute(stmt)
-        rows = result.all()
-
+    # Fetch top chunks based on user query
+    chunks = await retrieve_relevant_chunks(canonical_names, request.question, top_k_per_phone=3)
+    
     context_text = "\n\n".join(
-        f"[{model_name}] {json.dumps(specs_json)}" for model_name, specs_json in rows
-    ) or "No structured data found for these devices."
+        [f"[Phone: {c['phone_name']} | Category: {c['category']}]\n{c['content']}" for c in chunks]
+    ) or "No relevant information found for these devices."
 
     llm = AzureChatOpenAI(
         azure_deployment=os.getenv("AZURE_LLM_DEPLOYMENT"),
@@ -231,10 +228,10 @@ async def mini_chat(request: ChatRequest):
 
     messages = [
         ("system", f"""You are a concise smartphone assistant. Answer the user's question in
-1-2 sentences ONLY. Use exclusively the structured specs below. If the answer isn't in the
-data, say "I don't have that information."
+1-2 sentences ONLY. Use exclusively the semantic context below. If the answer isn't in the
+context, say "I don't have that information."
 
-Structured Specs:
+Semantic Context:
 {context_text}"""),
         ("user", request.question),
     ]

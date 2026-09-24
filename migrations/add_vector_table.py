@@ -15,6 +15,7 @@ async def migrate():
     conn = await asyncpg.connect(conn_str)
     try:
         await conn.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        await conn.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;")
         await conn.execute("CREATE EXTENSION IF NOT EXISTS btree_gin;")
     finally:
         await conn.close()

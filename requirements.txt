@@ -16,3 +16,5 @@ python-dotenv
 duckduckgo-search
 langchain-community
 tavily-python
+httpx
+pytest
